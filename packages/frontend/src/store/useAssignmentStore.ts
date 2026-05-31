@@ -17,6 +17,9 @@ export interface AssignmentState {
   additionalInstructions: string;
   questionConfigs: QuestionConfig[];
   
+  // 💡 Tracking field for uploaded context grounding reference files
+  referenceFile: File | null; 
+  
   // Asynchronous API Tracker State
   assignmentId: string | null;
   jobId: string | null;
@@ -25,8 +28,10 @@ export interface AssignmentState {
 
   // Actions / State Setters
   setStep: (step: number) => void;
-  updateFormFields: (fields: Partial<Omit<AssignmentState, 'questionConfigs'>>) => void;
+  // Omit both complex objects from generic text field update mappings safely
+  updateFormFields: (fields: Partial<Omit<AssignmentState, 'questionConfigs' | 'referenceFile'>>) => void;
   setQuestionConfigs: (configs: QuestionConfig[]) => void;
+  setReferenceFile: (file: File | null) => void; // 💡 Action state modifier setter
   resetStore: () => void;
 }
 
@@ -40,6 +45,7 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
     { type: 'Multiple Choice Questions', count: 5, marksPerQuestion: 1 },
     { type: 'Short Questions', count: 3, marksPerQuestion: 2 }
   ],
+  referenceFile: null, // 💡 Initialized default state
   assignmentId: null,
   jobId: null,
   generationStatus: 'idle',
@@ -50,6 +56,8 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
   updateFormFields: (fields) => set((state) => ({ ...state, ...fields })),
   
   setQuestionConfigs: (configs) => set({ questionConfigs: configs }),
+
+  setReferenceFile: (file) => set({ referenceFile: file }), // 💡 Active store setter assignment
   
   resetStore: () => set({
     currentStep: 1,
@@ -61,6 +69,7 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
       { type: 'Multiple Choice Questions', count: 5, marksPerQuestion: 1 },
       { type: 'Short Questions', count: 3, marksPerQuestion: 2 }
     ],
+    referenceFile: null, // 💡 Wipes the file configuration cleanly on reset loops
     assignmentId: null,
     jobId: null,
     generationStatus: 'idle',

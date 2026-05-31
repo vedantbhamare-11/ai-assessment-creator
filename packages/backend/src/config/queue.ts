@@ -1,3 +1,4 @@
+// ./config/queue.ts
 import { Queue } from 'bullmq';
 import { Redis } from 'ioredis'; // Keep this standard import
 import dotenv from 'dotenv';

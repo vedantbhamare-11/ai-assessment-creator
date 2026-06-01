@@ -1,10 +1,9 @@
 {
-  "name": "vedaai-assessment-creator",
+ "name": "ai-assessment-creator",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "packages/backend",
-    "packages/frontend"
+    "packages/*"
   ],
   "scripts": {
     "dev:backend": "npm run dev --workspace=packages/backend",

@@ -24,7 +24,7 @@ initAssessmentWorker();
 app.use('/api/assignments', assignmentRoutes);
 
 app.get('/health', (req, res) => {
-  res.json({ status: 'UP', message: 'VedaAI Backend Server is running smoothly.' });
+  res.json({ status: 'UP', message: 'Assessment Creator Backend Server is running smoothly.' });
 });
 
 app.listen(PORT, () => {

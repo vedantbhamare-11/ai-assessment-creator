@@ -12,9 +12,9 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "VedaAI - Assessment Engine",
-  description: "Automated curriculum blueprint and question paper generator",
+export const metadata = {
+  title: 'AI Assessment Creator',
+  description: 'Generate curriculum-aligned exam papers in seconds using advanced AI grounding frameworks.',
 };
 
 export default function RootLayout({

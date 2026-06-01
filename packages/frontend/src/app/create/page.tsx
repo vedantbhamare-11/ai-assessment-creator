@@ -36,13 +36,13 @@ export default function CreateAssessmentPage() {
     <div className="min-h-screen bg-slate-50/50 py-12 px-4 sm:px-6 lg:px-8 print:bg-white print:py-0 print:px-0">
       <div className="max-w-4xl mx-auto print:max-w-full">
         
-        {/* Header Layout branding - 💡 HIDDEN ON PRINT */}
+        {/* Header Layout branding - 💡 Fully White-Labeled */}
         <div className="mb-10 text-center print:hidden">
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            VedaAI Assessment Engine
+            AI Assessment Engine
           </h1>
           <p className="mt-2 text-md text-slate-600">
-            Create professional, curriculum-aligned curriculum blueprints in seconds.
+            Create professional, curriculum-aligned blueprints in seconds.
           </p>
         </div>
 

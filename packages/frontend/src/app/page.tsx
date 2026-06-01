@@ -7,12 +7,12 @@ export default function Home() {
     <div className="flex flex-col flex-1 items-center justify-center min-h-screen bg-slate-50/50 px-4">
       <main className="w-full max-w-2xl bg-white border border-slate-200/80 p-8 sm:p-12 rounded-2xl shadow-xl space-y-8 text-center sm:text-left">
         
-        {/* Branding Row */}
+        {/* Branding Row - 💡 Fully White-Labeled */}
         <div className="flex items-center justify-center sm:justify-start gap-3">
           <div className="h-10 w-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-100">
             <GraduationCap className="h-5 w-5" />
           </div>
-          <span className="font-black tracking-wider text-slate-800 uppercase text-xs">VedaAI System Portal</span>
+          <span className="font-black tracking-wider text-slate-800 uppercase text-xs">AI System Portal</span>
         </div>
 
         {/* Hero Copy Text */}

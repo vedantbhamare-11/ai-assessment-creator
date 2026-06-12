@@ -10,7 +10,7 @@ import {
   LayoutDashboard,
   Users,
   FileText,
-  Wand2,
+  Sliders, // 💡 Imported for blueprint configurations mapping
   Library,
   Settings,
 } from "lucide-react";
@@ -24,12 +24,11 @@ interface SidebarProps {
 export default function Sidebar({
   schoolName = "Delhi Public School",
   location = "Bokaro Steel City",
-  // Fallback to a clean placeholder user illustration if none is present
   avatarUrl = "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80",
 }: SidebarProps) {
   const pathname = usePathname();
 
-  // Navigation Items Configurations Blueprint matching your screenshot sections
+  // 💡 NAVIGATION BLUEPRINT UPDATED: Swapped old toolkit for custom patterns workspace
   const navItems = [
     { label: "Home", href: "/dashboard", icon: LayoutDashboard },
     { label: "My Groups", href: "/groups", icon: Users },
@@ -37,17 +36,19 @@ export default function Sidebar({
       label: "Assignments",
       href: "/assignments",
       icon: FileText,
-      badgeCount: 10, // Matches the orange notification pill in your screenshot
+      badgeCount: 10,
     },
-    { label: "AI Teacher's Toolkit", href: "/toolkit", icon: Wand2 },
+    { 
+      label: "Paper Patterns", 
+      href: "/patterns", 
+      icon: Sliders 
+    }, // 🛠️ NEW: Custom template designer workspace hook
     { label: "My Library", href: "/library", icon: Library },
   ];
 
   return (
     <div className="w-64 h-screen bg-white border-r border-slate-200/80 flex flex-col justify-between p-4 font-sans print:hidden shrink-0">
-      {/* 🔝 Upper Section: Branding & Action Controllers */}
       <div className="space-y-6">
-        {/* White-labeled Brand Identity Logo Row */}
         <div className="flex items-center gap-3 px-2 py-1.5">
           <div className="h-9 w-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-md shadow-indigo-100">
             <GraduationCap className="h-5 w-5" />
@@ -57,7 +58,6 @@ export default function Sidebar({
           </span>
         </div>
 
-        {/* ➕ "Create Assignment" Primary Call-to-Action Button */}
         <Link
           href="/create"
           className="w-full h-12 bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm rounded-2xl flex items-center justify-center gap-2 transition-all shadow-md active:scale-[0.98] border border-slate-800"
@@ -65,11 +65,9 @@ export default function Sidebar({
           <Plus className="h-4 w-4 stroke-3" /> Create Assignment
         </Link>
 
-        {/* 🗺️ Dynamic Navigation Stack Link Loops */}
         <nav className="space-y-1.5 pt-2">
           {navItems.map((item) => {
             const Icon = item.icon;
-            // Check if the current route matches the button destinations
             const isActive = pathname === item.href;
 
             return (
@@ -89,7 +87,6 @@ export default function Sidebar({
                   <span>{item.label}</span>
                 </div>
 
-                {/* Optional Notification Badge Counter Pill */}
                 {item.badgeCount && (
                   <span className="h-5 px-1.5 min-w-5 bg-orange-500 text-white font-bold text-[11px] rounded-full flex items-center justify-center shadow-sm shadow-orange-100">
                     {item.badgeCount}
@@ -101,9 +98,7 @@ export default function Sidebar({
         </nav>
       </div>
 
-      {/* 底部 🔽 Lower Section: Preferences & School Identity Profile Frame */}
       <div className="space-y-4">
-        {/* Settings Navigation Link */}
         <Link
           href="/settings"
           className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold tracking-wide transition-all ${
@@ -116,10 +111,8 @@ export default function Sidebar({
           <span>Settings</span>
         </Link>
 
-        {/* Divider line */}
         <div className="h-px bg-slate-100 mx-2" />
 
-        {/* School Context Identity Profile Block Wrapper */}
         <div className="flex items-center gap-3 p-3 bg-slate-50 border border-slate-100 rounded-2xl">
           <img
             src={avatarUrl}

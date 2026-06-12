@@ -15,10 +15,13 @@ export interface AssignmentState {
   className: string;
   dueDate: string;
   additionalInstructions: string;
-  questionConfigs: QuestionConfig[];
   
-  // 💡 Tracking field for uploaded context grounding reference files
-  referenceFile: File | null; 
+  // 💡 NEW FORM STATE FIELDS FOR STRATEGY PIVOT
+  selectedPatternId: string | null;         // Selected reusable saved pattern layout profile
+  primaryFile: File | null;                 // $1st priority context: immediate lecture notes/handwriting upload
+  secondaryFileId: string | null;           // $2nd priority context: foreign key pointing to persistent textbook vault
+  
+  questionConfigs: QuestionConfig[];        // Retained for absolute backwards structural fallback safety
   
   // Asynchronous API Tracker State
   assignmentId: string | null;
@@ -28,10 +31,10 @@ export interface AssignmentState {
 
   // Actions / State Setters
   setStep: (step: number) => void;
-  // Omit both complex objects from generic text field update mappings safely
-  updateFormFields: (fields: Partial<Omit<AssignmentState, 'questionConfigs' | 'referenceFile'>>) => void;
+  // Omit state file pointers and object arrays from generic form text inputs mapping loops safely
+  updateFormFields: (fields: Partial<Omit<AssignmentState, 'questionConfigs' | 'primaryFile'>>) => void;
   setQuestionConfigs: (configs: QuestionConfig[]) => void;
-  setReferenceFile: (file: File | null) => void; // 💡 Action state modifier setter
+  setPrimaryFile: (file: File | null) => void; // State setter for temporary primary note uploads
   resetStore: () => void;
 }
 
@@ -41,11 +44,16 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
   className: '',
   dueDate: '',
   additionalInstructions: '',
+  
+  // Initialize Strategy Defaults
+  selectedPatternId: null,
+  primaryFile: null,
+  secondaryFileId: null,
+  
   questionConfigs: [
     { type: 'Multiple Choice Questions', count: 5, marksPerQuestion: 1 },
     { type: 'Short Questions', count: 3, marksPerQuestion: 2 }
   ],
-  referenceFile: null, // 💡 Initialized default state
   assignmentId: null,
   jobId: null,
   generationStatus: 'idle',
@@ -57,7 +65,7 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
   
   setQuestionConfigs: (configs) => set({ questionConfigs: configs }),
 
-  setReferenceFile: (file) => set({ referenceFile: file }), // 💡 Active store setter assignment
+  setPrimaryFile: (file) => set({ primaryFile: file }), 
   
   resetStore: () => set({
     currentStep: 1,
@@ -65,11 +73,15 @@ export const useAssignmentStore = create<AssignmentState>((set) => ({
     className: '',
     dueDate: '',
     additionalInstructions: '',
+    
+    selectedPatternId: null,
+    primaryFile: null,
+    secondaryFileId: null,
+    
     questionConfigs: [
       { type: 'Multiple Choice Questions', count: 5, marksPerQuestion: 1 },
       { type: 'Short Questions', count: 3, marksPerQuestion: 2 }
     ],
-    referenceFile: null, // 💡 Wipes the file configuration cleanly on reset loops
     assignmentId: null,
     jobId: null,
     generationStatus: 'idle',

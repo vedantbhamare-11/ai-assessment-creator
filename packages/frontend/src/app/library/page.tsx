@@ -4,7 +4,7 @@
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAssignmentStore } from '@/store/useAssignmentStore';
-import { useRouter } from 'next/navigation'; // ✅ Correct Next.js routing path
+import { useRouter } from 'next/navigation';
 import { 
   Library, 
   FileText, 
@@ -13,7 +13,8 @@ import {
   Award, 
   Eye, 
   Loader2,
-  Inbox
+  Inbox,
+  Trash2
 } from 'lucide-react';
 
 interface AssignmentRecord {
@@ -33,15 +34,18 @@ export default function MyLibraryPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
+  // Track which unique assignment IDs are actively processing a delete request
+  const [deletingIds, setDeletingIds] = useState<Record<string, boolean>>({});
+  
   const router = useRouter();
 
+  // 1. Fetch historical data rows straight from your MongoDB express feed route
   useEffect(() => {
     async function fetchLibrary() {
       try {
         setIsLoading(true);
         setError(null);
 
-        // 💡 Request data with an explicit header profile to ensure clean parsing streams
         const response = await fetch('http://localhost:5001/api/assignments', {
           method: 'GET',
           headers: {
@@ -57,7 +61,6 @@ export default function MyLibraryPage() {
         
         let data;
         try {
-          // Clean up stray whitespace or trailing truncation segments from incomplete logs
           const sanitizedText = rawText.trim();
           data = JSON.parse(sanitizedText);
         } catch (jsonErr) {
@@ -69,8 +72,6 @@ export default function MyLibraryPage() {
           throw new Error("Expected collection array history list, received alternative data type model.");
         }
         
-        // 💡 DEFENSIVE FILTERING: Ensure the document is completed AND contains structural sections arrays 
-        // to prevent rendering empty elements from interrupted runs
         const completedPapers = data.filter((item: any) => 
           item && 
           item.status === 'completed' && 
@@ -90,6 +91,7 @@ export default function MyLibraryPage() {
     fetchLibrary();
   }, []);
 
+  // 2. Hydrate state store instantly when clicking an item to view it
   const handleViewPaper = (paper: AssignmentRecord) => {
     useAssignmentStore.setState({
       currentStep: 4,
@@ -104,6 +106,38 @@ export default function MyLibraryPage() {
     });
     
     router.push('/create');
+  };
+
+  // 3. Delete request orchestration pipeline handler
+  const handleDeletePaper = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation(); // Prevents accidental routing triggers on parent elements
+
+    const confirmDeletion = window.confirm(
+      "Are you sure you want to permanently delete this assessment? This action will remove it completely from your dashboard and database."
+    );
+    
+    if (!confirmDeletion) return;
+
+    try {
+      // Set local loading flag for this specific card instance
+      setDeletingIds(prev => ({ ...prev, [id]: true }));
+
+      const response = await fetch(`http://localhost:5001/api/assignments/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Backend failed to complete the database deletion request.');
+      }
+
+      // Smoothly slide out the item from current state matrix upon successful API validation
+      setAssessments(prev => prev.filter(item => item._id !== id));
+    } catch (err) {
+      console.error("🛑 Failed to process deletion loop sequence:", err);
+      alert("Error: Unable to drop this document from the database right now.");
+    } finally {
+      setDeletingIds(prev => ({ ...prev, [id]: false }));
+    }
   };
 
   return (
@@ -167,60 +201,83 @@ export default function MyLibraryPage() {
         {/* 📊 INTERACTIVE CARDS MESH LAYOUT GRID */}
         {!isLoading && !error && assessments.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {assessments.map((paper) => (
-              <div 
-                key={paper._id}
-                className="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300/90 transition-all flex flex-col justify-between space-y-4 group"
-              >
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-bold text-[10px] uppercase tracking-wider rounded-lg">
-                      {paper.subject}
-                    </span>
-                    <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
-                      <Calendar className="h-3 w-3" />
-                      {new Date(paper.createdAt).toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                      })}
-                    </div>
-                  </div>
+            {assessments.map((paper) => {
+              const isCardDeleting = !!deletingIds[paper._id];
 
-                  <h3 className="text-base font-black text-slate-900 truncate uppercase tracking-tight group-hover:text-indigo-600 transition-colors">
-                    {paper.subject} Blueprint
-                  </h3>
-                </div>
-
-                <div className="grid grid-cols-3 gap-2 py-3 px-3.5 bg-slate-50/70 border border-slate-100 rounded-xl text-center text-xs font-bold text-slate-600">
-                  <div className="space-y-0.5">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Class</div>
-                    <div className="text-slate-800 uppercase truncate flex items-center justify-center gap-1">
-                      <Layers className="h-3 w-3 text-slate-400" /> {paper.className}
-                    </div>
-                  </div>
-                  <div className="space-y-0.5 border-x border-slate-200/60">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Questions</div>
-                    <div className="text-slate-800 flex items-center justify-center gap-1">
-                      <FileText className="h-3 w-3 text-slate-400" /> {paper.totalQuestions}
-                    </div>
-                  </div>
-                  <div className="space-y-0.5">
-                    <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Marks</div>
-                    <div className="text-slate-900 font-black flex items-center justify-center gap-1">
-                      <Award className="h-3 w-3 text-emerald-500" /> {paper.totalMarks}
-                    </div>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleViewPaper(paper)}
-                  className="w-full h-10 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              return (
+                <div 
+                  key={paper._id}
+                  className={`bg-white border border-slate-200/80 rounded-2xl p-5 shadow-sm hover:shadow-md hover:border-slate-300/90 transition-all flex flex-col justify-between space-y-4 group transition-opacity duration-300 ${
+                    isCardDeleting ? 'opacity-40 pointer-events-none' : 'opacity-100'
+                  }`}
                 >
-                  <Eye className="h-3.5 w-3.5" /> View & Print Document
-                </button>
-              </div>
-            ))}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 font-bold text-[10px] uppercase tracking-wider rounded-lg">
+                        {paper.subject}
+                      </span>
+                      <div className="flex items-center gap-1 text-[11px] font-bold text-slate-400">
+                        <Calendar className="h-3 w-3" />
+                        {new Date(paper.createdAt).toLocaleDateString(undefined, {
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </div>
+                    </div>
+
+                    <h3 className="text-base font-black text-slate-900 truncate uppercase tracking-tight group-hover:text-indigo-600 transition-colors">
+                      {paper.subject} Blueprint
+                    </h3>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 py-3 px-3.5 bg-slate-50/70 border border-slate-100 rounded-xl text-center text-xs font-bold text-slate-600">
+                    <div className="space-y-0.5">
+                      <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Class</div>
+                      <div className="text-slate-800 uppercase truncate flex items-center justify-center gap-1">
+                        <Layers className="h-3 w-3 text-slate-400" /> {paper.className}
+                      </div>
+                    </div>
+                    <div className="space-y-0.5 border-x border-slate-200/60">
+                      <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Questions</div>
+                      <div className="text-slate-800 flex items-center justify-center gap-1">
+                        <FileText className="h-3 w-3 text-slate-400" /> {paper.totalQuestions}
+                      </div>
+                    </div>
+                    <div className="space-y-0.5">
+                      <div className="text-[10px] uppercase font-bold text-slate-400 tracking-wide">Marks</div>
+                      <div className="text-slate-900 font-black flex items-center justify-center gap-1">
+                        <Award className="h-3 w-3 text-emerald-500" /> {paper.totalMarks}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Button Action Row Group */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleViewPaper(paper)}
+                      disabled={isCardDeleting}
+                      className="flex-1 h-10 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+                    >
+                      <Eye className="h-3.5 w-3.5" /> View & Print Document
+                    </button>
+
+                    <button
+                      onClick={(e) => handleDeletePaper(e, paper._id)}
+                      disabled={isCardDeleting}
+                      title="Delete assignment permanently"
+                      className="h-10 w-10 border border-slate-200 hover:bg-red-50 hover:border-red-200 text-slate-400 hover:text-red-600 rounded-xl flex items-center justify-center transition-all active:scale-95 disabled:opacity-50 shrink-0"
+                    >
+                      {isCardDeleting ? (
+                        <Loader2 className="h-4 w-4 animate-spin text-red-600" />
+                      ) : (
+                        <Trash2 className="h-4 w-4 stroke-[2.5]" />
+                      )}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 

@@ -96,4 +96,23 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// 🗑️ DELETE /api/assignments/:id - Removes a document permanently from MongoDB
+router.delete('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(`🗑️ Received deletion request for Assignment ID: ${id}`);
+
+    const deletedAssignment = await Assignment.findByIdAndDelete(id);
+
+    if (!deletedAssignment) {
+      return res.status(404).json({ error: 'Assignment record not found.' });
+    }
+
+    console.log(`✅ Assignment ${id} successfully scrubbed from database.`);
+    res.json({ message: 'Assignment permanently deleted successfully.' });
+  } catch (error: any) {
+    console.error('❌ MongoDB database delete operation crashed:', error);
+    res.status(500).json({ error: 'Failed to delete assignment record from the database.' });
+  }
+});
 export default router;
